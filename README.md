@@ -626,38 +626,73 @@ mydb/
 Requête SQL
     │
     ▼
-Parser (sql/sql.go)
+Parser (pkg/sql/query.go)
     │
     ▼
-Validation
+Validation (internal/schema/validation.go)
     │
     ▼
-Lecture (storage/header.go, master.go)
+Planification (internal/engine/planner.go)
     │
     ▼
-Index (storage/index.go)
+Optimisation (internal/engine/optimizer.go)
     │
     ▼
-Données (storage/page.go)
+Exécution (internal/engine/executor.go)
+    │
+    ├──► Lecture (internal/storage/)
+    │       ├── header.go
+    │       ├── master.go
+    │       └── page.go
+    │
+    ├──► Index (internal/storage/index.go)
+    │
+    └──► Schéma (internal/schema/)
+            ├── types.go
+            └── constraints.go
 ```
 
-### Tests et Validation
+### Description du Flux
 
-```
-┌─────────────────────────────────┐
-│         parser_test.go          │
-├─────────────────────────────────┤
-│ • TestParseSelect()             │
-│   - Requêtes simples            │
-│   - Conditions WHERE            │
-│   - Erreurs de syntaxe          │
-│                                 │
-│ • TestParseInsert()             │
-│   - Insertions simples          │
-│   - Valeurs multiples           │
-│   - Types de données            │
-└─────────────────────────────────┘
-```
+1. **Parsing** (`pkg/sql/query.go`)
+   - Analyse de la requête SQL
+   - Conversion en structure de données interne
+   - Vérification de la syntaxe
+
+2. **Validation** (`internal/schema/validation.go`)
+   - Vérification des types de données
+   - Validation des contraintes
+   - Vérification des permissions
+
+3. **Planification** (`internal/engine/planner.go`)
+   - Création du plan d'exécution
+   - Détermination de l'ordre des opérations
+   - Choix des index à utiliser
+
+4. **Optimisation** (`internal/engine/optimizer.go`)
+   - Optimisation du plan d'exécution
+   - Choix des meilleurs index
+   - Réorganisation des opérations
+
+5. **Exécution** (`internal/engine/executor.go`)
+   - Exécution du plan optimisé
+   - Gestion des transactions
+   - Retour des résultats
+
+   a. **Lecture des Données** (`internal/storage/`)
+      - Lecture de l'en-tête
+      - Accès à la table master
+      - Lecture des pages de données
+
+   b. **Gestion des Index** (`internal/storage/index.go`)
+      - Recherche dans les index
+      - Mise à jour des index
+      - Optimisation des accès
+
+   c. **Gestion du Schéma** (`internal/schema/`)
+      - Vérification des types
+      - Application des contraintes
+      - Validation des données
 
 ## État Actuel des Fonctionnalités 🚦
 
