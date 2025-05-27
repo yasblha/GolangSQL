@@ -3,10 +3,10 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"mydb/internal/db"
+	"mydb/internal/parser"
 	"os"
 	"strings"
-	"mydb/db"
-	"mydb/parser"
 )
 
 // Structure pour stocker les données en mémoire
@@ -21,20 +21,20 @@ func executeCreateTable(query string) error {
 
 	// Extraire le nom de la table
 	tableName := strings.TrimSpace(strings.Replace(parts[0], "CREATE TABLE", "", -1))
-	
+
 	// Extraire les définitions des colonnes
 	columnsDef := strings.TrimRight(parts[1], ")")
 	columns := strings.Split(columnsDef, ",")
 
 	// Créer la table dans le store
 	dataStore[strings.ToLower(tableName)] = make([]map[string]interface{}, 0)
-	
+
 	fmt.Printf("Table '%s' créée avec succès\n", tableName)
 	fmt.Println("Colonnes:")
 	for _, col := range columns {
 		fmt.Printf("  * %s\n", strings.TrimSpace(col))
 	}
-	
+
 	return nil
 }
 
@@ -62,7 +62,7 @@ func executeSelect(selectQuery *parser.SelectQuery) {
 	if rows, exists := dataStore[table]; exists {
 		fmt.Println("\nRésultats:")
 		fmt.Println("----------")
-		
+
 		// Afficher les en-têtes
 		if len(rows) > 0 {
 			headers := make([]string, 0)
@@ -73,7 +73,7 @@ func executeSelect(selectQuery *parser.SelectQuery) {
 			} else {
 				headers = selectQuery.Columns
 			}
-			
+
 			// Afficher les en-têtes
 			for _, h := range headers {
 				fmt.Printf("%-15s", h)
@@ -144,7 +144,7 @@ func main() {
 	// Boucle principale pour les commandes
 	scanner := bufio.NewScanner(os.Stdin)
 	fmt.Println("\nEntrez vos commandes SQL (ou 'exit' pour quitter):")
-	
+
 	for {
 		fmt.Print("> ")
 		if !scanner.Scan() {
@@ -185,4 +185,4 @@ func main() {
 			fmt.Println("Commande non reconnue. Utilisez CREATE TABLE, SELECT ou INSERT.")
 		}
 	}
-} 
+}

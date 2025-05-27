@@ -2,10 +2,9 @@ package main
 
 import (
 	"fmt"
-	"mydb/db"
-	"mydb/parser"
+	"mydb/internal/db"
+	"mydb/pkg/sql"
 	"os"
-	"strings"
 )
 
 func main() {
@@ -17,25 +16,21 @@ func main() {
 
 	for _, query := range testQueries {
 		fmt.Printf("\nTest de la requête: %s\n", query)
-		
-		if strings.HasPrefix(strings.ToUpper(query), "SELECT") {
-			result, err := parser.ParseSelect(query)
-			if err != nil {
-				fmt.Printf("Erreur de parsing SELECT: %v\n", err)
-				continue
-			}
-			fmt.Printf("Table: %s\n", result.Table)
-			fmt.Printf("Colonnes: %v\n", result.Columns)
-			fmt.Printf("Conditions: %v\n", result.Conditions)
-		} else if strings.HasPrefix(strings.ToUpper(query), "INSERT") {
-			result, err := parser.ParseInsert(query)
-			if err != nil {
-				fmt.Printf("Erreur de parsing INSERT: %v\n", err)
-				continue
-			}
-			fmt.Printf("Table: %s\n", result.Table)
-			fmt.Printf("Colonnes: %v\n", result.Columns)
-			fmt.Printf("Valeurs: %v\n", result.Values)
+
+		result, err := sql.Parse(query)
+		if err != nil {
+			fmt.Printf("Erreur de parsing: %v\n", err)
+			continue
+		}
+
+		fmt.Printf("Table: %s\n", result.GetTable())
+		switch q := result.(type) {
+		case *sql.SelectQuery:
+			fmt.Printf("Colonnes: %v\n", q.Columns)
+			fmt.Printf("Conditions: %v\n", q.Conditions)
+		case *sql.InsertQuery:
+			fmt.Printf("Colonnes: %v\n", q.Columns)
+			fmt.Printf("Valeurs: %v\n", q.Values)
 		}
 	}
 

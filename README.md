@@ -1,5 +1,103 @@
 # GoSQL - Un Moteur SQLite en Go 🚀
 
+## Structure du Projet 📁
+
+```
+mydb/
+├── cmd/
+│   └── db_cli/      # Interface en ligne de commande
+├── internal/
+│   ├── engine/      # Moteur d'exécution des requêtes
+│   ├── storage/     # Gestion de la persistance
+│   └── schema/      # Gestion du schéma
+├── pkg/
+│   └── sql/         # Parser SQL et types de données
+├── examples/        # Exemples d'utilisation
+├── docs/           # Documentation
+└── test/           # Tests unitaires et d'intégration
+```
+
+## Structure Détaillée des Fichiers 📁
+
+```
+mydb/
+├── cmd/
+│   └── db_cli/
+│       ├── main.go              # Point d'entrée CLI
+│       └── commands/
+│           ├── select.go        # Commande SELECT
+│           ├── insert.go        # Commande INSERT
+│           └── create.go        # Commande CREATE
+│
+├── internal/
+│   ├── engine/
+│   │   ├── executor.go         # Exécution des requêtes
+│   │   ├── planner.go          # Planification des requêtes
+│   │   └── optimizer.go        # Optimisation des requêtes
+│   │
+│   ├── storage/
+│   │   ├── header.go           # Gestion de l'en-tête SQLite
+│   │   │   ├── ParseHeader()   # Lecture de l'en-tête
+│   │   │   └── ValidateHeader()# Validation de l'en-tête
+│   │   │
+│   │   ├── master.go           # Gestion de la table master
+│   │   │   ├── ReadMasterTable()# Lecture de la table master
+│   │   │   └── ParseTableInfo() # Analyse des infos tables
+│   │   │
+│   │   ├── index.go            # Gestion des index
+│   │   │   ├── ReadIndex()     # Lecture d'un index
+│   │   │   ├── SearchIndex()   # Recherche dans l'index
+│   │   │   └── UpdateIndex()   # Mise à jour de l'index
+│   │   │
+│   │   ├── page.go             # Gestion des pages
+│   │   │   ├── ReadPage()      # Lecture d'une page
+│   │   │   ├── ParseCells()    # Analyse des cellules
+│   │   │   └── WritePage()     # Écriture d'une page
+│   │   │
+│   │   └── table.go            # Définition des tables
+│   │       ├── CreateTable()   # Création d'une table
+│   │       └── AlterTable()    # Modification d'une table
+│   │
+│   └── schema/
+│       ├── types.go            # Types de données
+│       ├── constraints.go      # Contraintes
+│       └── validation.go       # Validation du schéma
+│
+├── pkg/
+│   └── sql/
+│       ├── types.go            # Types SQL
+│       │   ├── Type           # Type de données
+│       │   ├── Column         # Structure de colonne
+│       │   └── Table          # Structure de table
+│       │
+│       ├── query.go           # Parser de requêtes
+│       │   ├── Parse()        # Parsing principal
+│       │   ├── ParseSelect()  # Parsing SELECT
+│       │   └── ParseInsert()  # Parsing INSERT
+│       │
+│       └── conditions.go      # Conditions SQL
+│           ├── ParseWhere()   # Parsing WHERE
+│           └── EvalCondition()# Évaluation des conditions
+│
+├── examples/
+│   ├── basic/                 # Exemples basiques
+│   │   └── main.go           # Exemple simple
+│   └── advanced/             # Exemples avancés
+│       └── main.go           # Exemple complexe
+│
+├── docs/
+│   ├── architecture.md       # Architecture du système
+│   └── api.md               # Documentation API
+│
+└── test/
+    ├── unit/                # Tests unitaires
+    │   ├── sql_test.go     # Tests du parser
+    │   └── storage_test.go # Tests du stockage
+    │
+    └── integration/        # Tests d'intégration
+        └── engine_test.go  # Tests du moteur
+```
+
 ## Qu'est-ce que c'est ? 🤔
 
 GoSQL est comme un petit assistant qui peut lire et comprendre les fichiers SQLite, comme si on lui donnait un livre et qu'il pouvait le lire et le comprendre ! 
@@ -21,7 +119,7 @@ Imaginez que vous avez une boîte magique (notre base de données) qui contient 
 
 ## Les Parties Principales 🎯
 
-### 1. Le Reader (db/) 📖
+### 1. Le Storage (internal/storage/) 📖
 C'est comme quelqu'un qui sait lire le langage spécial de SQLite.
 
 ```
@@ -62,7 +160,7 @@ C'est comme quelqu'un qui sait lire le langage spécial de SQLite.
 [1] [7] [12] [20]
 ```
 
-### 2. Le Parser (parser/) 🔍
+### 2. Le Parser (pkg/sql/) 🔍
 C'est comme un traducteur qui comprend le langage SQL.
 
 #### Comment il fonctionne :
@@ -86,31 +184,15 @@ C'est comme un traducteur qui comprend le langage SQL.
 └─────────────────┘
 ```
 
-#### Les Types de Requêtes :
+#### Les Types de Requêtes Supportés :
+- SELECT
+- INSERT
+- CREATE TABLE
 
-1. SELECT (Chercher des données)
-```sql
-SELECT nom, age FROM utilisateurs WHERE age > 18
-```
-
-2. INSERT (Ajouter des données)
-```sql
-INSERT INTO utilisateurs (nom, age) VALUES ('Jean', 20)
-```
-
-3. CREATE TABLE (Créer une nouvelle table)
-```sql
-CREATE TABLE utilisateurs (
-    id INTEGER PRIMARY KEY,
-    nom TEXT,
-    age INTEGER
-)
-```
-
-### 3. L'Executor (à venir) ⚙️
+### 3. L'Engine (internal/engine/) ⚙️
 C'est comme un robot qui exécute les ordres :
 1. Il reçoit les instructions du parser
-2. Il utilise le reader pour trouver les données
+2. Il utilise le storage pour trouver les données
 3. Il fait ce qu'on lui demande (chercher, ajouter, etc.)
 
 ## Comment Utiliser GoSQL ? 🛠️
@@ -128,26 +210,26 @@ go build
 file, _ := os.Open("ma_base.db")
 
 // Lire l'en-tête
-info := db.ParseHeader(file)
+info := storage.ParseHeader(file)
 
 // Lire les tables
-tables := db.ReadMasterTable(file, info)
+tables := storage.ReadMasterTable(file, info)
 
 // Exécuter une requête
 query := "SELECT * FROM users WHERE age > 18"
-result := parser.ParseSelect(query)
+result, err := sql.Parse(query)
 ```
 
 ## Les Fichiers Importants 📁
 
-### Dans le dossier `db/` :
+### Dans le dossier `storage/` :
 - `header.go` : Lit l'en-tête du fichier SQLite
 - `master.go` : Gère la table des matières
 - `index.go` : Gère les index pour chercher vite
 - `table.go` : Définit ce qu'est une table
 - `page.go` : Lit les pages de données
 
-### Dans le dossier `parser/` :
+### Dans le dossier `sql/` :
 - `sql.go` : Comprend le langage SQL
 - `parser_test.go` : Vérifie que tout fonctionne
 
@@ -471,39 +553,22 @@ Fichier DB (1 To)
 
 ```
 mydb/
-├── db/
-│   ├── header.go
-│   │   ├── ParseHeader()      // Lit l'en-tête SQLite
-│   │   └── ValidateHeader()   // Vérifie la validité
-│   │
-│   ├── master.go
-│   │   ├── ReadMasterTable()  // Lit la table des matières
-│   │   └── ParseTableInfo()   // Analyse les infos des tables
-│   │
-│   ├── index.go
-│   │   ├── ReadIndex()        // Lit un index
-│   │   ├── SearchIndex()      // Recherche dans l'index
-│   │   └── UpdateIndex()      // Met à jour l'index
-│   │
-│   └── page.go
-│       ├── ReadPage()         // Lit une page
-│       ├── ParseCells()       // Analyse les cellules
-│       └── WritePage()        // Écrit une page
-│
-└── parser/
-    ├── sql.go
-    │   ├── ParseSelect()      // Analyse les requêtes SELECT
-    │   ├── ParseInsert()      // Analyse les requêtes INSERT
-    │   └── ParseCreate()      // Analyse les requêtes CREATE
-    │
-    └── parser_test.go
-        ├── TestParseSelect()  // Tests des SELECT
-        └── TestParseInsert()  // Tests des INSERT
+├── cmd/
+│   └── db_cli/      # Interface en ligne de commande
+├── internal/
+│   ├── engine/      # Moteur d'exécution des requêtes
+│   ├── storage/     # Gestion de la persistance
+│   └── schema/      # Gestion du schéma
+├── pkg/
+│   └── sql/         # Parser SQL et types de données
+├── examples/        # Exemples d'utilisation
+├── docs/           # Documentation
+└── test/           # Tests unitaires et d'intégration
 ```
 
 ### Détails des Fonctions Principales
 
-#### 1. Lecture du Fichier (db/)
+#### 1. Lecture du Fichier (storage/)
 ```
 ┌─────────────────────────────────┐
 │           header.go             │
@@ -524,7 +589,7 @@ mydb/
 └─────────────────────────────────┘
 ```
 
-#### 2. Gestion des Index (db/)
+#### 2. Gestion des Index (storage/)
 ```
 ┌─────────────────────────────────┐
 │           index.go              │
@@ -539,7 +604,7 @@ mydb/
 └─────────────────────────────────┘
 ```
 
-#### 3. Parser SQL (parser/)
+#### 3. Parser SQL (sql/)
 ```
 ┌─────────────────────────────────┐
 │           sql.go                │
@@ -561,19 +626,19 @@ mydb/
 Requête SQL
     │
     ▼
-Parser (parser/sql.go)
+Parser (sql/sql.go)
     │
     ▼
 Validation
     │
     ▼
-Lecture (db/header.go, master.go)
+Lecture (storage/header.go, master.go)
     │
     ▼
-Index (db/index.go)
+Index (storage/index.go)
     │
     ▼
-Données (db/page.go)
+Données (storage/page.go)
 ```
 
 ### Tests et Validation
@@ -593,6 +658,128 @@ Données (db/page.go)
 │   - Types de données            │
 └─────────────────────────────────┘
 ```
+
+## État Actuel des Fonctionnalités 🚦
+
+### Ce qui Fonctionne ✅
+
+```
+┌─────────────────────────────────┐
+│         Fonctionnel             │
+├─────────────────────────────────┤
+│ • Lecture du fichier SQLite     │
+│   - En-tête                     │
+│   - Table des matières          │
+│                                 │
+│ • Parser SQL                    │
+│   - SELECT simple               │
+│   - INSERT simple               │
+│   - CREATE TABLE                │
+└─────────────────────────────────┘
+```
+
+### Ce qui est en Développement 🚧
+
+```
+┌─────────────────────────────────┐
+│         En Cours                │
+├─────────────────────────────────┤
+│ • Conditions WHERE              │
+│   - = (égalité)                │
+│   - >, < (comparaisons)        │
+│   - LIKE (recherche)           │
+│                                 │
+│ • INSERT avec conditions       │
+│   - WHERE value = ''           │
+│   - WHERE value IS NULL        │
+└─────────────────────────────────┘
+```
+
+### Ce qui n'est pas Encore Implémenté ❌
+
+```
+┌─────────────────────────────────┐
+│         À Faire                 │
+├─────────────────────────────────┤
+│ • Requêtes complexes            │
+│   - JOIN                       │
+│   - GROUP BY                   │
+│   - HAVING                     │
+│                                 │
+│ • Transactions                  │
+│   - BEGIN TRANSACTION          │
+│   - COMMIT                     │
+│   - ROLLBACK                   │
+│                                 │
+│ • Index avancés                │
+│   - Index composites           │
+│   - Index partiels             │
+└─────────────────────────────────┘
+```
+
+### Exemples de Requêtes Supportées
+
+#### SELECT
+```sql
+-- ✅ Fonctionne
+SELECT * FROM users;
+SELECT name, age FROM users;
+
+-- 🚧 En développement
+SELECT * FROM users WHERE age > 25;
+SELECT * FROM users WHERE name LIKE 'J%';
+
+-- ❌ Pas encore implémenté
+SELECT * FROM users JOIN orders ON users.id = orders.user_id;
+```
+
+#### INSERT
+```sql
+-- ✅ Fonctionne
+INSERT INTO users (name, age) VALUES ('John', 25);
+INSERT INTO users VALUES (1, 'Alice', 30);
+
+-- 🚧 En développement
+INSERT INTO users (name, age) 
+SELECT name, age FROM old_users 
+WHERE age > 20;
+
+-- ❌ Pas encore implémenté
+INSERT OR REPLACE INTO users ...
+INSERT OR IGNORE INTO users ...
+```
+
+#### CREATE TABLE
+```sql
+-- ✅ Fonctionne
+CREATE TABLE users (
+    id INTEGER PRIMARY KEY,
+    name TEXT,
+    age INTEGER
+);
+
+-- 🚧 En développement
+CREATE TABLE users (
+    id INTEGER PRIMARY KEY,
+    name TEXT UNIQUE,
+    age INTEGER CHECK (age > 0)
+);
+
+-- ❌ Pas encore implémenté
+CREATE TABLE users (
+    id INTEGER PRIMARY KEY,
+    name TEXT,
+    age INTEGER,
+    FOREIGN KEY (id) REFERENCES other_table(id)
+);
+```
+
+### Prochaines Étapes 📋
+
+1. Implémenter les conditions WHERE complètes
+2. Ajouter le support des INSERT avec conditions
+3. Développer les index avancés
+4. Ajouter le support des transactions
 
 ## Comment Contribuer ? 🤝
 

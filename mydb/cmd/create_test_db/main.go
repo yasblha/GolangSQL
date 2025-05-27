@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"mydb/tests"
+	tests "mydb/test/unit"
 )
 
 func main() {
@@ -12,4 +12,4 @@ func main() {
 		return
 	}
 	fmt.Println("Fichier de test créé avec succès: test.db")
-} 
+}
