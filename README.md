@@ -1,6 +1,6 @@
-# GoSQL - Un Moteur SQLite en Go 🚀
+# GoSQL - Un Moteur SQLite en Go 
 
-## Structure du Projet 📁
+## Structure du Projet 
 
 ```
 mydb/
@@ -17,7 +17,7 @@ mydb/
 └── test/           # Tests unitaires et d'intégration
 ```
 
-## Structure Détaillée des Fichiers 📁
+## Structure Détaillée des Fichiers 
 
 ```
 mydb/
@@ -98,7 +98,7 @@ mydb/
         └── engine_test.go  # Tests du moteur
 ```
 
-## Qu'est-ce que c'est ? 🤔
+## Qu'est-ce que c'est ? 
 
 GoSQL est comme un petit assistant qui peut lire et comprendre les fichiers SQLite, comme si on lui donnait un livre et qu'il pouvait le lire et le comprendre ! 
 
@@ -117,7 +117,7 @@ Imaginez que vous avez une boîte magique (notre base de données) qui contient 
 └─────────┴─────────┴────────────┘
 ```
 
-## Les Parties Principales 🎯
+## Les Parties Principales 
 
 ### 1. Le Storage (internal/storage/) 📖
 C'est comme quelqu'un qui sait lire le langage spécial de SQLite.
@@ -815,17 +815,6 @@ CREATE TABLE users (
 2. Ajouter le support des INSERT avec conditions
 3. Développer les index avancés
 4. Ajouter le support des transactions
-
-## Comment Contribuer ? 🤝
-
-1. Fork le projet
-2. Créez une branche (`git checkout -b feature/AmazingFeature`)
-3. Committez vos changements (`git commit -m 'Add some AmazingFeature'`)
-4. Push sur la branche (`git push origin feature/AmazingFeature`)
-5. Ouvrez une Pull Request
-
-## Licence 📝
-Ce projet est sous licence MIT. Voir le fichier `LICENSE` pour plus de détails.
 
 ## Contact 📧
 Votre Nom - [@votre_twitter](https://twitter.com/votre_twitter)
