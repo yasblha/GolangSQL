@@ -46,9 +46,15 @@ type SelectQuery struct {
 type InsertQuery struct {
 	Table      string
 	Columns    []string
-	Values     []interface{}
+	Values     []string
 	Conditions []Condition
 	OnConflict string
+}
+
+// CreateQuery représente une requête CREATE TABLE
+type CreateQuery struct {
+	Table   string
+	Columns []string
 }
 
 // Condition représente une condition WHERE
@@ -61,9 +67,13 @@ type Condition struct {
 }
 
 // GetType implémente l'interface Query
-func (q *SelectQuery) GetType() string { return "SELECT" }
+func (q *SelectQuery) GetType() string  { return "SELECT" }
 func (q *SelectQuery) GetTable() string { return q.Table }
 
 // GetType implémente l'interface Query
-func (q *InsertQuery) GetType() string { return "INSERT" }
-func (q *InsertQuery) GetTable() string { return q.Table } 
+func (q *InsertQuery) GetType() string  { return "INSERT" }
+func (q *InsertQuery) GetTable() string { return q.Table }
+
+// GetType implémente l'interface Query
+func (q *CreateQuery) GetType() string  { return "CREATE" }
+func (q *CreateQuery) GetTable() string { return q.Table }
