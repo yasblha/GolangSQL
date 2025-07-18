@@ -1,102 +1,217 @@
 # GoSQL - Un Moteur SQLite en Go 
 
-## Structure du Projet 
+---
+
+
+### 1. **Introduction **
+
+- **Contexte** :
+  > "Nous avons développé GoSQL, un mini-moteur de base de données inspiré de SQLite, écrit en Go. L'objectif est de comprendre le fonctionnement interne d'un SGBD, de la lecture binaire d'un fichier jusqu'à l'exécution de requêtes SQL."
+
+
+- **Pourquoi Go et SQLite ?**
+  > "Go est un langage moderne, performant et simple à lire. SQLite est un format ouvert, très utilisé, et sa simplicité en fait un excellent support pédagogique."
+
+
+
+---
+
+## Structure du Projet 📁
 
 ```
 mydb/
 ├── cmd/
-│   └── db_cli/      # Interface en ligne de commande
+│   ├── db_cli/           # Interface CLI
+│   │   └── main.go
+│   └── create_test_db/   # Générateur de base de test
+│       └── main.go
 ├── internal/
-│   ├── engine/      # Moteur d'exécution des requêtes
-│   ├── storage/     # Gestion de la persistance
-│   └── schema/      # Gestion du schéma
+│   ├── db/               # Accès bas niveau SQLite (header, master, index, page, table, file, parser)
+│   │   ├── header.go
+│   │   ├── master.go
+│   │   ├── index.go
+│   │   ├── table.go
+│   │   ├── page.go
+│   │   ├── file.go
+│   │   └── parser.go
+│   ├── engine/           # Moteur d'exécution SQL
+│   │   └── engine.go
+│   └── parser/           # Parser SQL avancé et tests
+│       ├── sql.go
+│       └── parser_test.go
 ├── pkg/
-│   └── sql/         # Parser SQL et types de données
-├── examples/        # Exemples d'utilisation
-├── docs/           # Documentation
-└── test/           # Tests unitaires et d'intégration
-```
-
-## Structure Détaillée des Fichiers 
-
-```
-mydb/
-├── cmd/
-│   └── db_cli/
-│       ├── main.go              # Point d'entrée CLI
-│       └── commands/
-│           ├── select.go        # Commande SELECT
-│           ├── insert.go        # Commande INSERT
-│           └── create.go        # Commande CREATE
-│
-├── internal/
-│   ├── engine/
-│   │   ├── executor.go         # Exécution des requêtes
-│   │   ├── planner.go          # Planification des requêtes
-│   │   └── optimizer.go        # Optimisation des requêtes
-│   │
-│   ├── storage/
-│   │   ├── header.go           # Gestion de l'en-tête SQLite
-│   │   │   ├── ParseHeader()   # Lecture de l'en-tête
-│   │   │   └── ValidateHeader()# Validation de l'en-tête
-│   │   │
-│   │   ├── master.go           # Gestion de la table master
-│   │   │   ├── ReadMasterTable()# Lecture de la table master
-│   │   │   └── ParseTableInfo() # Analyse des infos tables
-│   │   │
-│   │   ├── index.go            # Gestion des index
-│   │   │   ├── ReadIndex()     # Lecture d'un index
-│   │   │   ├── SearchIndex()   # Recherche dans l'index
-│   │   │   └── UpdateIndex()   # Mise à jour de l'index
-│   │   │
-│   │   ├── page.go             # Gestion des pages
-│   │   │   ├── ReadPage()      # Lecture d'une page
-│   │   │   ├── ParseCells()    # Analyse des cellules
-│   │   │   └── WritePage()     # Écriture d'une page
-│   │   │
-│   │   └── table.go            # Définition des tables
-│   │       ├── CreateTable()   # Création d'une table
-│   │       └── AlterTable()    # Modification d'une table
-│   │
-│   └── schema/
-│       ├── types.go            # Types de données
-│       ├── constraints.go      # Contraintes
-│       └── validation.go       # Validation du schéma
-│
-├── pkg/
-│   └── sql/
-│       ├── types.go            # Types SQL
-│       │   ├── Type           # Type de données
-│       │   ├── Column         # Structure de colonne
-│       │   └── Table          # Structure de table
-│       │
-│       ├── query.go           # Parser de requêtes
-│       │   ├── Parse()        # Parsing principal
-│       │   ├── ParseSelect()  # Parsing SELECT
-│       │   └── ParseInsert()  # Parsing INSERT
-│       │
-│       └── conditions.go      # Conditions SQL
-│           ├── ParseWhere()   # Parsing WHERE
-│           └── EvalCondition()# Évaluation des conditions
-│
+│   └── sql/              # Types et parser SQL
+│       ├── types.go
+│       └── query.go
 ├── examples/
-│   ├── basic/                 # Exemples basiques
-│   │   └── main.go           # Exemple simple
-│   └── advanced/             # Exemples avancés
-│       └── main.go           # Exemple complexe
-│
+│   └── basic/
+│       └── main.go
+├── test/
+│   ├── unit/
+│   │   ├── binary_test.go
+│   │   └── create_test_db.go
+│   ├── integration/
+│   └── fixtures/
 ├── docs/
-│   ├── architecture.md       # Architecture du système
-│   └── api.md               # Documentation API
-│
-└── test/
-    ├── unit/                # Tests unitaires
-    │   ├── sql_test.go     # Tests du parser
-    │   └── storage_test.go # Tests du stockage
-    │
-    └── integration/        # Tests d'intégration
-        └── engine_test.go  # Tests du moteur
+├── main.go
+├── go.mod
+├── sample.db
+├── test.db
 ```
+
+## Fichiers et dossiers principaux
+
+- **internal/db/** : lecture/écriture bas niveau du format SQLite (header, master, index, page, table, file, parser)
+- **internal/engine/engine.go** : moteur d'exécution des requêtes SQL
+- **internal/parser/sql.go** : parser SQL avancé (et tests associés)
+- **pkg/sql/types.go, query.go** : types SQL et parser de requêtes simples
+- **cmd/db_cli/main.go** : CLI interactive
+- **cmd/create_test_db/main.go** : génération de base de test
+- **test/unit/** : tests unitaires (binary_test.go, create_test_db.go)
+- **examples/basic/main.go** : exemple d'utilisation
+
+## Exemple d'utilisation du code
+
+```go
+import (
+    "mydb/internal/db"
+    "mydb/pkg/sql"
+    "os"
+)
+
+file, _ := os.Open("sample.db")
+info := db.ParseHeader(file)
+tables := db.ReadMasterTable(file, info)
+query := "SELECT * FROM users"
+result, err := sql.Parse(query)
+```
+
+## Comment lancer la démo CLI ? 🛠️
+
+1. **Compiler la CLI**
+
+Depuis la racine du projet :
+
+```bash
+cd mydb/cmd/db_cli
+go build -o db_cli
+```
+
+2. **Lancer la CLI**
+
+Toujours dans `mydb/cmd/db_cli` :
+
+```bash
+./db_cli
+```
+
+3. **Utiliser la CLI**
+
+- Tape une requête SQL (par exemple) :
+  - `CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT);`
+  - `INSERT INTO users (id, name) VALUES (1, 'Alice');`
+  - `SELECT * FROM users;`
+
+La CLI affiche le résultat dans le terminal.
+
+4. **Exemple rapide**
+
+```bash
+$ ./db_cli
+GoSQL CLI - tapez une requête SQL ou 'exit' pour quitter
+> CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT);
+Table créée !
+> INSERT INTO users (id, name) VALUES (1, 'Alice');
+1 ligne insérée.
+> SELECT * FROM users;
++----+-------+
+| id | name  |
++----+-------+
+| 1  | Alice |
++----+-------+
+> exit
+```
+
+## Générer une base de test
+
+Pour générer un fichier SQLite de test :
+
+```bash
+cd mydb/cmd/create_test_db
+go run main.go
+```
+
+Cela crée un fichier `test.db` utilisable pour les tests.
+
+## Tests unitaires
+
+Pour lancer les tests unitaires :
+
+```bash
+cd mydb/test/unit
+go test
+```
+
+---
+
+## Schéma du flux de requête SQL dans GoSQL
+
+```mermaid
+flowchart TD
+  A["Entrée utilisateur (requête SQL)"] --> B["Parser SQL (pkg/sql)"]
+  B --> C["Plan d'exécution (internal/engine)"]
+  C --> D["Accès/écriture fichier binaire (internal/db)"]
+  D --> E["Lecture/écriture page(s) disque"]
+  E --> F["Retour du résultat (CLI)"]
+```
+
+1. **Entrée utilisateur** : L'utilisateur saisit une requête SQL dans le CLI.
+2. **Parser SQL** : La requête est analysée et transformée en structure Go.
+3. **Plan d'exécution** : Le moteur prépare l'exécution (création, insertion, sélection, etc.).
+4. **Accès fichier binaire** : Les opérations sont traduites en lectures/écritures sur le fichier .db.
+5. **Pages disque** : Les données sont lues ou modifiées page par page.
+6. **Retour** : Le résultat est affiché à l'utilisateur.
+
+---
+
+## Schéma d'un fichier binaire SQLite minimal
+
+```mermaid
+flowchart TD
+  H["Header (100 octets)"]
+  P1["Page 1 : Table master"]
+  P2["Page 2+ : Données utilisateur"]
+  H --> P1
+  P1 --> P2
+  subgraph "Header (100 octets)"
+    H1["Magic string (16)"]
+    H2["Page size (2)"]
+    H3["Version, encodage, etc."]
+    H4["Offsets, compteurs, etc."]
+    H1 --> H2 --> H3 --> H4
+  end
+  subgraph "Page 1 : Table master"
+    M1["Définitions des tables"]
+    M2["Schéma SQL"]
+    M1 --> M2
+  end
+  subgraph "Pages suivantes"
+    D1["Données lignes"]
+    D2["Index éventuels"]
+    D1 --> D2
+  end
+```
+
+### Explications
+- **Header (100 octets)** : Contient la signature "SQLite format 3\0", la taille des pages, la version, l'encodage, et divers compteurs/offsets.
+- **Page 1 (table master)** : Contient la définition des tables et le schéma SQL.
+- **Pages suivantes** : Stockent les données utilisateur (lignes) et éventuellement les index.
+
+Ce schéma permet de visualiser la structure interne d'un fichier .db minimal généré par GoSQL ou SQLite.
+
+## Licence 📝
+Ce projet est sous licence MIT. Voir le fichier `LICENSE` pour plus de détails.
+
 
 ## Qu'est-ce que c'est ? 
 
@@ -508,7 +623,7 @@ Requête: SELECT * FROM users WHERE id = 1000
 └─────────────────────────────────┘
 ```
 
-### 4. Optimisations 🚀
+### 4. Optimisations 
 
 #### Index en RAM
 ```
@@ -694,7 +809,7 @@ Exécution (internal/engine/executor.go)
       - Application des contraintes
       - Validation des données
 
-## État Actuel des Fonctionnalités 🚦
+## État Actuel des Fonctionnalités 
 
 ### Ce qui Fonctionne ✅
 
@@ -713,44 +828,7 @@ Exécution (internal/engine/executor.go)
 └─────────────────────────────────┘
 ```
 
-### Ce qui est en Développement 🚧
 
-```
-┌─────────────────────────────────┐
-│         En Cours                │
-├─────────────────────────────────┤
-│ • Conditions WHERE              │
-│   - = (égalité)                │
-│   - >, < (comparaisons)        │
-│   - LIKE (recherche)           │
-│                                 │
-│ • INSERT avec conditions       │
-│   - WHERE value = ''           │
-│   - WHERE value IS NULL        │
-└─────────────────────────────────┘
-```
-
-### Ce qui n'est pas Encore Implémenté ❌
-
-```
-┌─────────────────────────────────┐
-│         À Faire                 │
-├─────────────────────────────────┤
-│ • Requêtes complexes            │
-│   - JOIN                       │
-│   - GROUP BY                   │
-│   - HAVING                     │
-│                                 │
-│ • Transactions                  │
-│   - BEGIN TRANSACTION          │
-│   - COMMIT                     │
-│   - ROLLBACK                   │
-│                                 │
-│ • Index avancés                │
-│   - Index composites           │
-│   - Index partiels             │
-└─────────────────────────────────┘
-```
 
 ### Exemples de Requêtes Supportées
 
@@ -760,13 +838,6 @@ Exécution (internal/engine/executor.go)
 SELECT * FROM users;
 SELECT name, age FROM users;
 
--- 🚧 En développement
-SELECT * FROM users WHERE age > 25;
-SELECT * FROM users WHERE name LIKE 'J%';
-
--- ❌ Pas encore implémenté
-SELECT * FROM users JOIN orders ON users.id = orders.user_id;
-```
 
 #### INSERT
 ```sql
@@ -774,14 +845,7 @@ SELECT * FROM users JOIN orders ON users.id = orders.user_id;
 INSERT INTO users (name, age) VALUES ('John', 25);
 INSERT INTO users VALUES (1, 'Alice', 30);
 
--- 🚧 En développement
-INSERT INTO users (name, age) 
-SELECT name, age FROM old_users 
-WHERE age > 20;
 
--- ❌ Pas encore implémenté
-INSERT OR REPLACE INTO users ...
-INSERT OR IGNORE INTO users ...
 ```
 
 #### CREATE TABLE
@@ -793,21 +857,6 @@ CREATE TABLE users (
     age INTEGER
 );
 
--- 🚧 En développement
-CREATE TABLE users (
-    id INTEGER PRIMARY KEY,
-    name TEXT UNIQUE,
-    age INTEGER CHECK (age > 0)
-);
-
--- ❌ Pas encore implémenté
-CREATE TABLE users (
-    id INTEGER PRIMARY KEY,
-    name TEXT,
-    age INTEGER,
-    FOREIGN KEY (id) REFERENCES other_table(id)
-);
-```
 
 ### Prochaines Étapes 📋
 
@@ -817,6 +866,4 @@ CREATE TABLE users (
 4. Ajouter le support des transactions
 
 ## Contact 📧
-Votre Nom - [@votre_twitter](https://twitter.com/votre_twitter)
-
-Lien du projet : [https://github.com/votre-nom/gosql](https://github.com/votre-nom/gosql)
+Yassine BOULAHNINE et RABUS Jules
